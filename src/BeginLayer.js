@@ -12,6 +12,14 @@ var BeginLayer = cc.Layer.extend({
         beginLabel.x = size.width / 2;
         beginLabel.y = size.height / 2;
         this.addChild(beginLabel, 5);
+
+        var bgSprite = new cc.Sprite(res.Bg_png);
+        bgSprite.attr({
+            x: size.width / 2,
+            y: size.height / 2
+        });
+        this.addChild(bgSprite, 0);
+
         var currentLayer = this;
         var beginLabelListener = cc.EventListener.create({
                 event: cc.EventListener.TOUCH_ONE_BY_ONE,

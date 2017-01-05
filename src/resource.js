@@ -1,6 +1,7 @@
 var res = {
     Logo_png : "res/logo.png",
-    Bg_png : "res/bg.png"
+    Bg_png : "res/bg.png",
+    Actor_wav : "res/actor.wav",
 };
 
 var g_resources = [];

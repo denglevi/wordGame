@@ -11,9 +11,9 @@ var MainLayer = cc.Layer.extend({
         this.getWordInfo();
         var size = cc.winSize;
 
-        var clearLabel = new cc.LabelTTF("clear", "Arial", 38);
-        clearLabel.x = size.width - 55;
-        clearLabel.y = size.height / 10;
+        this.clearLabel = new cc.LabelTTF("clear", "Arial", 38);
+        this.clearLabel.x = size.width - 55;
+        this.clearLabel.y = size.height / 10;
 
         var addLabel = new cc.LabelTTF("add", "Arial", 38);
         addLabel.x = size.width / 2 - 155;
@@ -25,7 +25,7 @@ var MainLayer = cc.Layer.extend({
             y: size.height / 2
         });
 
-        this.addChild(clearLabel, 5);
+        this.addChild(this.clearLabel, 5);
         this.addChild(addLabel, 5);
         this.addChild(bgSprite, 0);
 
@@ -41,7 +41,7 @@ var MainLayer = cc.Layer.extend({
             if (xhr.readyState == 4 && (xhr.status >= 200 && xhr.status <= 207)) {
                 var httpStatus = xhr.statusText;
                 var response = xhr.responseText;
-                try{
+                // try{
                     mainLayer.wordInfo = JSON.parse(response);
                     if(mainLayer.wordInfo.length <= 0){
                         var size = cc.winSize;
@@ -52,15 +52,16 @@ var MainLayer = cc.Layer.extend({
                         return false;
                     }
                     mainLayer.showWordInfo(mainLayer.wordInfo[0]);
-                }catch (e){
-                    console.error("无法解析服务器的响应结果: \n" + response);
-                }
+                // }catch (e){
+                //     console.error("无法解析服务器的响应结果: \n" + response);
+                // }
 
             }
         };
         xhr.send();
     },
     showWordInfo:function(obj){
+        cc.audioEngine.playEffect('http://wordgame.denglevi.com/assets/actor.wav');
         var size = cc.winSize;
         var mainLayer = this;
         var wordLabel = new cc.LabelTTF(obj.word, "Arial", 38);
@@ -68,19 +69,21 @@ var MainLayer = cc.Layer.extend({
         wordLabel.y = size.height / 2 + 200;
         this.addChild(wordLabel, 5);
 
-        var wordZH = obj.wordZH.split(',');
+        // var wordZH = obj.wordZH.split(',');
+        // obj.word = obj.word+'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+        var keyword = '';
         var valNum = setInterval(function(){
-            var i = parseInt(Math.random()*wordZH.length);
+            var i = parseInt(Math.random()*obj.word.length);
             var r = parseInt(Math.random() * 255);
             var g = parseInt(Math.random() * 255);
             var b = parseInt(Math.random() * 255);
-            var random_num = parseInt(30 + Math.random() * 270);
-            var num = new cc.LabelTTF(wordZH[i], "Helvetica-Bold", 40);
+            var random_num = parseInt(50 + Math.random() * 350);
+            var num = new cc.LabelTTF(obj.word[i], "Helvetica-Bold", 60);
             num.setFontFillColor(cc.color(r, g, b, 0));
             num.x = random_num;
             num.y = 100;
             num.scale = (0.3, 0.3);
-            mainLayer.addChild(num, 500,obj.word);
+            mainLayer.addChild(num, 500);
 
             var scale = cc.scaleTo(1, 1);
             var fadeOut = cc.fadeOut(3);
@@ -103,36 +106,26 @@ var MainLayer = cc.Layer.extend({
                     var pos = touch.getLocation();
 
                     if (cc.rectContainsPoint(target.getBoundingBox(), pos)) {
-                        cc.log(num.getString());
+                        keyword += num.getString();
+                        cc.log(keyword);
+                        if (keyword.toLowerCase() == obj.word.toLowerCase()) {
+                            wordLabel.removeFromParent(true);
+                            keyword = '';
+                            clearInterval(valNum);
+                            var indexNum = mainLayer.wordInfo.indexOf(obj);
+                            if(indexNum == mainLayer.wordInfo.length-1){
+                                cc.log("完成任务");
+                                return false;
+                            }else{
+                                var wordObj = mainLayer.wordInfo[indexNum+1]
+                                mainLayer.showWordInfo(wordObj);
+                            }
+                        }
+                        return true;
                     }
                 }
             }),num);
-        },1000);
-        var keyword = '';
-        var keyListener = cc.EventListener.create({
-            event: cc.EventListener.KEYBOARD,
-            onKeyReleased: function (keyCode, event) {
-                keyword += String.fromCharCode(keyCode);
-                cc.log(keyword);
-                if (keyword.toLowerCase() == obj.word.toLowerCase()) {
-                    wordLabel.removeFromParent(true);
-                    keyword = '';
-                    clearInterval(valNum);
-                    var indexNum = mainLayer.wordInfo.indexOf(obj);
-                    if(indexNum == mainLayer.wordInfo.length-1){
-                        cc.log("完成任务");
-                        return false;
-                    }else{
-                        var wordObj = mainLayer.wordInfo[indexNum+1]
-                        mainLayer.showWordInfo(wordObj);
-                        cc.eventManager
-                    }
-
-                }
-                return true;
-            }
-        });
-        cc.eventManager.addListener(keyListener, this);
+        },500);
 
         cc.eventManager.addListener(cc.EventListener.create({
             event: cc.EventListener.TOUCH_ONE_BY_ONE,
@@ -142,9 +135,9 @@ var MainLayer = cc.Layer.extend({
                 var pos = touch.getLocation();
 
                 if (cc.rectContainsPoint(target.getBoundingBox(), pos)) {
-                    mainLayer.keyword = "";
+                    keyword = "";
                 }
             }
-        }),mainLayer);
+        }),mainLayer.clearLabel);
     }
 });
