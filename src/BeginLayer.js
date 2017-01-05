@@ -17,10 +17,15 @@ var BeginLayer = cc.Layer.extend({
                 event: cc.EventListener.TOUCH_ONE_BY_ONE,
                 swallowTouches: true,
                 onTouchBegan: function (touch, event) {
-                    var mainLayer = new MainLayer();
-                    var scene = cc.director.getRunningScene();
-                    scene.addChild(mainLayer,100);
-                    scene.removeChild(currentLayer);
+                    var target = event.getCurrentTarget();
+                    var pos = touch.getLocation();
+                    if( cc.rectContainsPoint(target.getBoundingBox(), pos) ) {
+                        var mainLayer = new MainLayer();
+                        var scene = cc.director.getRunningScene();
+                        scene.addChild(mainLayer,100);
+                        currentLayer.removeFromParent(true);
+                        return false;
+                    }
                 }
             });
         cc.eventManager.addListener(beginLabelListener,beginLabel);
