@@ -69,22 +69,28 @@ var MainLayer = cc.Layer.extend({
         wordLabel.y = size.height / 2 + 200;
         this.addChild(wordLabel, 5);
 
+        var wordContentSize = wordLabel.getContentSize();
+        var wordSymbolLabel = new cc.LabelTTF('['+obj.symbol+']', "Arial", 20);
+        wordSymbolLabel.x = size.width / 2+wordContentSize.width+2;
+        wordSymbolLabel.y = size.height / 2 + 195;
+        this.addChild(wordSymbolLabel, 5);
+
         var len = obj.wordZH.length;
         var wordNum = parseInt(size.width/20);
+        var offsetHeight = 160 - (parseInt(len/wordNum)-1)*12;
         cc.log(wordNum);
         var newWordZH = '';
         if (len > wordNum) {
             for (var i = 0; i < len; i++) {
                 if (i % wordNum == 0 && i != 0) newWordZH += obj.wordZH[i] + "\n";
                 else newWordZH += obj.wordZH[i];
-                console.log(newWordZH);
             }
         } else {
             newWordZH = obj.wordZH;
         }
         var wordZHLabel = new cc.LabelTTF(newWordZH, "Arial", 20);
         wordZHLabel.x = size.width / 2;
-        wordZHLabel.y = size.height / 2 + 160;
+        wordZHLabel.y = size.height / 2 + offsetHeight;
         this.addChild(wordZHLabel, 5);
 
         // var wordZH = obj.wordZH.split(',');
@@ -146,6 +152,7 @@ var MainLayer = cc.Layer.extend({
                         cc.log(keyword);
                         if (keyword.toLowerCase() == obj.word.toLowerCase()) {
                             wordLabel.removeFromParent(true);
+                            wordZHLabel.removeFromParent(true);
                             var flareSprite = new cc.Sprite(res.Flare_png);
                             flareSprite.attr({
                                 x: wordLabel.x,
