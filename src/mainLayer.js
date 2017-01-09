@@ -25,15 +25,16 @@ var MainLayer = cc.Layer.extend({
             y: size.height / 2
         });
         if(window.localStorage && window.localStorage.getItem('scoreData')){
+            mainLayer.score = (Array(6).join(0) + mainLayer.score).slice(-6);
             this.score = JSON.parse(window.localStorage.getItem('scoreData')).score;
-            var currentTime = new Date().getTime();
+            var currentTime = new Date().getTime()/1000;
             if(currentTime - JSON.parse(window.localStorage.getItem('scoreData')).time > 86400){
                 this.score = this.score - 20;
+                this.score = (Array(6).join(0) + this.score).slice(-6);
                 var data = {
                     score:this.score,
                     time:JSON.parse(window.localStorage.getItem('scoreData')).time
                 }
-
                 window.localStorage.setItem('scoreData',JSON.stringify(data));
             }
         }else{
@@ -219,7 +220,7 @@ var MainLayer = cc.Layer.extend({
                                 };
 
                                 window.localStorage.setItem('scoreData',JSON.stringify(data));
-                                cc.log("完成任务");
+                                alert("恭喜你,完成任务!");
                                 return true;
                             } else {
                                 var wordObj = mainLayer.wordInfo[indexNum + 1];
