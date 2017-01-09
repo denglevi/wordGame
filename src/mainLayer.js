@@ -24,8 +24,30 @@ var MainLayer = cc.Layer.extend({
             x: size.width / 2,
             y: size.height / 2
         });
+        if(window.localStorage && window.localStorage.getItem('scoreData')){
+            this.score = JSON.parse(window.localStorage.getItem('scoreData')).score;
+            var currentTime = new Date().getTime();
+            if(currentTime - JSON.parse(window.localStorage.getItem('scoreData')).time > 86400){
+                this.score = this.score - 20;
+                var data = {
+                    score:this.score,
+                    time:JSON.parse(window.localStorage.getItem('scoreData')).time
+                }
+
+                window.localStorage.setItem('scoreData',JSON.stringify(data));
+            }
+        }else{
+            this.score = "000000";
+        }
+        this.scoreLabel = new cc.LabelTTF("SCORE:"+this.score,"Arial",18);
+        var scoreContentSize = this.scoreLabel.getContentSize();
+        cc.log(scoreContentSize);
+        this.scoreLabel.x = size.width-scoreContentSize.width/2-10;
+        this.scoreLabel.y = size.height-scoreContentSize.height;
+
 
         this.addChild(this.clearLabel, 5);
+        this.addChild(this.scoreLabel, 5);
         this.addChild(addLabel, 5);
         this.addChild(bgSprite, 0);
 
@@ -70,14 +92,15 @@ var MainLayer = cc.Layer.extend({
         this.addChild(wordLabel, 5);
 
         var wordContentSize = wordLabel.getContentSize();
+        cc.log(wordContentSize);
         var wordSymbolLabel = new cc.LabelTTF('['+obj.symbol+']', "Arial", 20);
-        wordSymbolLabel.x = size.width / 2+wordContentSize.width+2;
-        wordSymbolLabel.y = size.height / 2 + 195;
+        wordSymbolLabel.x = size.width/2;
+        wordSymbolLabel.y = size.height / 2 + 175;
         this.addChild(wordSymbolLabel, 5);
 
         var len = obj.wordZH.length;
         var wordNum = parseInt(size.width/20);
-        var offsetHeight = 160 - (parseInt(len/wordNum)-1)*12;
+        var offsetHeight = 140 - (parseInt(len/wordNum)-1)*12;
         cc.log(wordNum);
         var newWordZH = '';
         if (len > wordNum) {
@@ -149,10 +172,16 @@ var MainLayer = cc.Layer.extend({
                         mainLayer.addChild(moveOutSprite, 1000);
 
                         keyword += num.getString();
-                        cc.log(keyword);
+                        // cc.log(keyword);
                         if (keyword.toLowerCase() == obj.word.toLowerCase()) {
                             wordLabel.removeFromParent(true);
                             wordZHLabel.removeFromParent(true);
+                            wordSymbolLabel.removeFromParent(true);
+                            mainLayer.score = parseInt(mainLayer.score) + 10;
+                            mainLayer.score = (Array(6).join(0) + mainLayer.score).slice(-6);
+                            setTimeout(function(){
+                                mainLayer.scoreLabel.setString("SCORE:"+mainLayer.score);
+                            },2000);
                             var flareSprite = new cc.Sprite(res.Flare_png);
                             flareSprite.attr({
                                 x: wordLabel.x,
@@ -178,8 +207,20 @@ var MainLayer = cc.Layer.extend({
                             clearInterval(valNum);
                             var indexNum = mainLayer.wordInfo.indexOf(obj);
                             if (indexNum == mainLayer.wordInfo.length - 1) {
+                                if(!window.localStorage){
+                                    return false;
+                                }
+
+                                var time = new Date().getTime()/1000;
+
+                                var data = {
+                                    score:mainLayer.score,
+                                    time:time
+                                };
+
+                                window.localStorage.setItem('scoreData',JSON.stringify(data));
                                 cc.log("完成任务");
-                                return false;
+                                return true;
                             } else {
                                 var wordObj = mainLayer.wordInfo[indexNum + 1];
                                 mainLayer.showWordInfo(wordObj);
