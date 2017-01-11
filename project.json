@@ -15,6 +15,7 @@
         "src/resource.js",
         "src/BeginLayer.js",
         "src/MainLayer.js",
+        "src/SnakeLayer.js",
         "src/EndLayer.js",
         "src/app.js"
     ]
