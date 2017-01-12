@@ -28,7 +28,8 @@ var BeginLayer = cc.Layer.extend({
                     var target = event.getCurrentTarget();
                     var pos = touch.getLocation();
                     if( cc.rectContainsPoint(target.getBoundingBox(), pos) ) {
-                        var mainLayer = new SnakeLayer();
+                        // var mainLayer = new SnakeLayer();
+                        var mainLayer = new MainLayer();
                         var scene = cc.director.getRunningScene();
                         scene.addChild(mainLayer,100);
                         currentLayer.removeFromParent(true);

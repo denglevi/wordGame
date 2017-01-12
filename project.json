@@ -17,6 +17,7 @@
         "src/MainLayer.js",
         "src/SnakeLayer.js",
         "src/EndLayer.js",
+        "src/LetterSprite.js",
         "src/app.js"
     ]
 }

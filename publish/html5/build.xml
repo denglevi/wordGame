@@ -173,7 +173,9 @@
                 <file name="src/resource.js"/>
                 <file name="src/BeginLayer.js"/>
                 <file name="src/MainLayer.js"/>
+                <file name="src/SnakeLayer.js"/>
                 <file name="src/EndLayer.js"/>
+                <file name="src/LetterSprite.js"/>
                 <file name="src/app.js"/>
                 <file name="main.js"/>
 

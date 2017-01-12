@@ -24,40 +24,41 @@ var MainLayer = cc.Layer.extend({
             x: size.width / 2,
             y: size.height / 2
         });
-        if(window.localStorage && window.localStorage.getItem('scoreData')){
-            mainLayer.score = (Array(6).join(0) + mainLayer.score).slice(-6);
+        if (window.localStorage && window.localStorage.getItem('scoreData')) {
+            // mainLayer.score = (Array(6).join(0) + mainLayer.score).slice(-6);
             this.score = JSON.parse(window.localStorage.getItem('scoreData')).score;
-            var currentTime = new Date().getTime()/1000;
-            if(currentTime - JSON.parse(window.localStorage.getItem('scoreData')).time > 86400){
+            var currentTime = new Date().getTime() / 1000;
+            if (currentTime - JSON.parse(window.localStorage.getItem('scoreData')).time > 86400) {
                 this.score = this.score - 20;
                 this.score = (Array(6).join(0) + this.score).slice(-6);
                 var data = {
-                    score:this.score,
-                    time:JSON.parse(window.localStorage.getItem('scoreData')).time
+                    score: this.score,
+                    time: JSON.parse(window.localStorage.getItem('scoreData')).time
                 }
-                window.localStorage.setItem('scoreData',JSON.stringify(data));
+                window.localStorage.setItem('scoreData', JSON.stringify(data));
             }
-        }else{
+        } else {
             this.score = "000000";
         }
-        this.scoreLabel = new cc.LabelTTF("SCORE:"+this.score,"Arial",18);
+        this.scoreLabel = new cc.LabelTTF("SCORE:" + this.score, "Arial", 18);
         var scoreContentSize = this.scoreLabel.getContentSize();
         cc.log(scoreContentSize);
-        this.scoreLabel.x = size.width-scoreContentSize.width/2-10;
-        this.scoreLabel.y = size.height-scoreContentSize.height;
+        this.scoreLabel.x = size.width - scoreContentSize.width / 2 - 10;
+        this.scoreLabel.y = size.height - scoreContentSize.height;
 
 
-        this.addChild(this.clearLabel, 5);
+        // this.addChild(this.clearLabel, 5);
         this.addChild(this.scoreLabel, 5);
-        this.addChild(addLabel, 5);
+        // this.addChild(addLabel, 5);
         this.addChild(bgSprite, 0);
 
+        this.showKeyBoard();
         return true;
     },
     getWordInfo: function () {
         cc.log(1253);
         var xhr = cc.loader.getXMLHttpRequest();
-        xhr.open("GET", res.Host + "/getWordList");
+        xhr.open("GET", res.Host_str + "/getWordList");
         xhr.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
         var mainLayer = this;
         xhr.onreadystatechange = function () {
@@ -84,24 +85,25 @@ var MainLayer = cc.Layer.extend({
         xhr.send();
     },
     showWordInfo: function (obj) {
-        cc.audioEngine.playEffect(res.Host + '/assets/actor.wav');
+        cc.audioEngine.playEffect(res.Host_str + '/' + obj.soundFilePath);
         var size = cc.winSize;
         var mainLayer = this;
         var wordLabel = new cc.LabelTTF(obj.word, "Arial", 38);
         wordLabel.x = size.width / 2;
         wordLabel.y = size.height / 2 + 200;
         this.addChild(wordLabel, 5);
-
+        this.wordLabel = wordLabel;
+        this.wordObj = obj;
         var wordContentSize = wordLabel.getContentSize();
         cc.log(wordContentSize);
-        var wordSymbolLabel = new cc.LabelTTF('['+obj.symbol+']', "Arial", 20);
-        wordSymbolLabel.x = size.width/2;
+        var wordSymbolLabel = new cc.LabelTTF('[' + obj.symbol + ']', "Arial", 20);
+        wordSymbolLabel.x = size.width / 2;
         wordSymbolLabel.y = size.height / 2 + 175;
         this.addChild(wordSymbolLabel, 5);
-
+        this.wordSymbolLabel = wordSymbolLabel;
         var len = obj.wordZH.length;
-        var wordNum = parseInt(size.width/20);
-        var offsetHeight = 140 - (parseInt(len/wordNum)-1)*12;
+        var wordNum = parseInt(size.width / 20);
+        var offsetHeight = 140 - (parseInt(len / wordNum) - 1) * 12;
         cc.log(wordNum);
         var newWordZH = '';
         if (len > wordNum) {
@@ -116,11 +118,13 @@ var MainLayer = cc.Layer.extend({
         wordZHLabel.x = size.width / 2;
         wordZHLabel.y = size.height / 2 + offsetHeight;
         this.addChild(wordZHLabel, 5);
+        this.wordZHLabel = wordZHLabel;
 
         // var wordZH = obj.wordZH.split(',');
         // var testWord = obj.word;
         // obj.word = obj.word+'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-        var keyword = '';
+        var letterList = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
         var valNum = setInterval(function () {
             var i = parseInt(Math.random() * obj.word.length);
             var r = parseInt(Math.random() * 255);
@@ -132,7 +136,7 @@ var MainLayer = cc.Layer.extend({
             num.x = random_num;
             num.y = 100;
             num.scale = (0.3, 0.3);
-            mainLayer.addChild(num, 500);
+            mainLayer.addChild(num, 500,100+letterList.indexOf(obj.word[i].toUpperCase()));
 
             var scale = cc.scaleTo(1, 1);
             var fadeOut = cc.fadeOut(3);
@@ -147,103 +151,138 @@ var MainLayer = cc.Layer.extend({
             num.runAction(rotate);
             var seq = cc.sequence(move, func);
             num.runAction(seq);
-
-            cc.eventManager.addListener(cc.EventListener.create({
-                event: cc.EventListener.TOUCH_ONE_BY_ONE,
-                onTouchBegan: function (touch, event) {
-                    var target = event.getCurrentTarget();
-                    var pos = touch.getLocation();
-
-                    if (cc.rectContainsPoint(target.getBoundingBox(), pos)) {
-                        target.removeFromParent(true);
-                        var moveOutSprite = new cc.Sprite(res.Beams_png, cc.rect(160, 209, 40, 90));
-                        moveOutSprite.attr({
-                            x: pos.x,
-                            y: pos.y
-                        });
-                        var scale = cc.scaleTo(0.5, 0.1, 0.1);
-                        var move = cc.moveTo(0.5, moveOutSprite.x, moveOutSprite.y + 400);
-                        var func = cc.callFunc(function (data) {
-                            data.removeFromParent(true);
-                        }, moveOutSprite, null);
-                        var seq = cc.sequence(move, func);
-                        moveOutSprite.runAction(seq);
-                        moveOutSprite.runAction(scale);
-
-                        mainLayer.addChild(moveOutSprite, 1000);
-
-                        keyword += num.getString();
-                        // cc.log(keyword);
-                        if (keyword.toLowerCase() == obj.word.toLowerCase()) {
-                            wordLabel.removeFromParent(true);
-                            wordZHLabel.removeFromParent(true);
-                            wordSymbolLabel.removeFromParent(true);
-                            mainLayer.score = parseInt(mainLayer.score) + 10;
-                            mainLayer.score = (Array(6).join(0) + mainLayer.score).slice(-6);
-                            setTimeout(function(){
-                                mainLayer.scoreLabel.setString("SCORE:"+mainLayer.score);
-                            },2000);
-                            var flareSprite = new cc.Sprite(res.Flare_png);
-                            flareSprite.attr({
-                                x: wordLabel.x,
-                                y: wordLabel.y,
-                                scale: (0.6, 0.6)
-                            });
-
-                            var controlPoints = [cc.p(wordLabel.x - 200, wordLabel.y), cc.p(wordLabel.x - 100, wordLabel.y + 50), cc.p(wordLabel.x + 150, wordLabel.y + 150)];
-                            var func = cc.callFunc(function (obj) {
-                                obj.removeFromParent(true);
-                            }, flareSprite, null);
-                            var scale = cc.scaleTo(2, 0.1, 0.1);
-                            var bezierTo = cc.bezierTo(2, controlPoints);
-                            var rep = cc.sequence(bezierTo, func);
-                            var rotate = cc.rotateBy(2, 720);
-
-                            flareSprite.runAction(rep);
-                            flareSprite.runAction(scale);
-                            flareSprite.runAction(rotate);
-                            mainLayer.addChild(flareSprite, 15000);
-
-                            keyword = '';
-                            clearInterval(valNum);
-                            var indexNum = mainLayer.wordInfo.indexOf(obj);
-                            if (indexNum == mainLayer.wordInfo.length - 1) {
-                                if(!window.localStorage){
-                                    return false;
-                                }
-
-                                var time = new Date().getTime()/1000;
-
-                                var data = {
-                                    score:mainLayer.score,
-                                    time:time
-                                };
-
-                                window.localStorage.setItem('scoreData',JSON.stringify(data));
-                                alert("恭喜你,完成任务!");
-                                return true;
-                            } else {
-                                var wordObj = mainLayer.wordInfo[indexNum + 1];
-                                mainLayer.showWordInfo(wordObj);
-                            }
-                        }
-                        return true;
-                    }
-                }
-            }), num);
+            // cc.eventManager.addListener(cc.EventListener.create({
+            //     event: cc.EventListener.TOUCH_ONE_BY_ONE,
+            //     onTouchBegan: function (touch, event) {
+            //         var target = event.getCurrentTarget();
+            //         var pos = touch.getLocation();
+            //
+            //         if (cc.rectContainsPoint(target.getBoundingBox(), pos)) {
+            //             target.removeFromParent(true);
+            //             var moveOutSprite = new cc.Sprite(res.Beams_png, cc.rect(160, 209, 40, 90));
+            //             moveOutSprite.attr({
+            //                 x: pos.x,
+            //                 y: pos.y
+            //             });
+            //             var scale = cc.scaleTo(0.5, 0.1, 0.1);
+            //             var move = cc.moveTo(0.5, moveOutSprite.x, moveOutSprite.y + 400);
+            //             var func = cc.callFunc(function (data) {
+            //                 data.removeFromParent(true);
+            //             }, moveOutSprite, null);
+            //             var seq = cc.sequence(move, func);
+            //             moveOutSprite.runAction(seq);
+            //             moveOutSprite.runAction(scale);
+            //
+            //             mainLayer.addChild(moveOutSprite, 1000);
+            //
+            //             keyword += num.getString();
+            //             // cc.log(keyword);
+            //             if (keyword.toLowerCase() == obj.word.toLowerCase()) {
+            //                 wordLabel.removeFromParent(true);
+            //                 wordZHLabel.removeFromParent(true);
+            //                 wordSymbolLabel.removeFromParent(true);
+            //                 mainLayer.score = parseInt(mainLayer.score) + 10;
+            //                 mainLayer.score = (Array(6).join(0) + mainLayer.score).slice(-6);
+            //                 setTimeout(function () {
+            //                     mainLayer.scoreLabel.setString("SCORE:" + mainLayer.score);
+            //                 }, 2000);
+            //                 var flareSprite = new cc.Sprite(res.Flare_png);
+            //                 flareSprite.attr({
+            //                     x: wordLabel.x,
+            //                     y: wordLabel.y,
+            //                     scale: (0.6, 0.6)
+            //                 });
+            //
+            //                 var controlPoints = [cc.p(wordLabel.x - 200, wordLabel.y), cc.p(wordLabel.x - 100, wordLabel.y + 50), cc.p(wordLabel.x + 150, wordLabel.y + 150)];
+            //                 var func = cc.callFunc(function (obj) {
+            //                     obj.removeFromParent(true);
+            //                 }, flareSprite, null);
+            //                 var scale = cc.scaleTo(2, 0.1, 0.1);
+            //                 var bezierTo = cc.bezierTo(2, controlPoints);
+            //                 var rep = cc.sequence(bezierTo, func);
+            //                 var rotate = cc.rotateBy(2, 720);
+            //
+            //                 flareSprite.runAction(rep);
+            //                 flareSprite.runAction(scale);
+            //                 flareSprite.runAction(rotate);
+            //                 mainLayer.addChild(flareSprite, 15000);
+            //
+            //                 keyword = '';
+            //                 clearInterval(valNum);
+            //                 var indexNum = mainLayer.wordInfo.indexOf(obj);
+            //                 if (indexNum == mainLayer.wordInfo.length - 1) {
+            //                     if (!window.localStorage) {
+            //                         return false;
+            //                     }
+            //
+            //                     var time = new Date().getTime() / 1000;
+            //
+            //                     var data = {
+            //                         score: mainLayer.score,
+            //                         time: time
+            //                     };
+            //
+            //                     window.localStorage.setItem('scoreData', JSON.stringify(data));
+            //                     alert("恭喜你,完成任务!");
+            //                     return true;
+            //                 } else {
+            //                     var wordObj = mainLayer.wordInfo[indexNum + 1];
+            //                     mainLayer.showWordInfo(wordObj);
+            //                 }
+            //             }
+            //             return true;
+            //         }
+            //     }
+            // }), num);
         }, 300);
+        this.valNum = valNum;
+        // cc.eventManager.addListener(cc.EventListener.create({
+        //     event: cc.EventListener.TOUCH_ONE_BY_ONE,
+        //     swallowTouches: true,
+        //     onTouchBegan: function (touch, event) {
+        //         var target = event.getCurrentTarget();
+        //         var pos = touch.getLocation();
+        //
+        //         if (cc.rectContainsPoint(target.getBoundingBox(), pos)) {
+        //             keyword = "";
+        //         }
+        //     }
+        // }), mainLayer.clearLabel);
+    },
+    showKeyBoard: function () {
+        var winSize = cc.winSize;
 
-        cc.eventManager.addListener(cc.EventListener.create({
-            event: cc.EventListener.TOUCH_ONE_BY_ONE,
-            swallowTouches: true,
-            onTouchBegan: function (touch, event) {
-                var target = event.getCurrentTarget();
-                var pos = touch.getLocation();
+        var spriteSize = parseInt(winSize.width/10);
+        var scaleSize = (spriteSize/70).toFixed(2);
 
-                if (cc.rectContainsPoint(target.getBoundingBox(), pos)) {
-                    keyword = "";
-                }
-            }
-        }), mainLayer.clearLabel);
+        var letters = ['Q','W','E','R','T','Y','U','I','O','P'];
+        var xRange = spriteSize/2;
+        for(var i=0;i<letters.length;i++){
+            var letter = new LetterSprite(eval("res."+letters[i]+'_1_png'),letters[i],scaleSize,this);
+            var x = i*spriteSize+xRange;
+            letter.x = x;
+            letter.y = 120;
+            this.addChild(letter, 5);
+        }
+        var letters = ['A','S','D','F','G','H','J','K','L'];
+        var xRange = (spriteSize*2)/2;
+        for(var i=0;i<letters.length;i++){
+            var letter = new LetterSprite(eval("res."+letters[i]+'_1_png'),letters[i],scaleSize,this);
+            var x = i*spriteSize+xRange;
+            letter.x = x;
+            letter.y = 80;
+            this.addChild(letter, 5);
+        }
+
+        var letters = ['Z','X','C','V','B','N','M'];
+        var xRange = (spriteSize*4)/2;
+        for(var i=0;i<letters.length;i++){
+            var letter = new LetterSprite(eval("res."+letters[i]+'_1_png'),letters[i],scaleSize,this);
+            var x = i*spriteSize+xRange;
+            letter.x = x;
+            letter.y = 40;
+            this.addChild(letter, 5);
+        }
+
     }
 });
