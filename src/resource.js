@@ -1,7 +1,11 @@
 var res = {
     Logo_png : "res/logo.png",
     Bg_png : "res/bg.png",
-    Actor_wav : "res/actor.wav",
+    Fail_wav : "res/fail.wav",
+    Success_wav : "res/success.wav",
+    Success_word_wav : "res/success_word.wav",
+    Bg_music_1 : "res/bg_music_1.wav",
+    // Bg_music_2_mp3 : "res/bg_music_2.mp3",
     Beams_png : "res/beams.png",
     Flare_png:'res/flare.png',
     Arrow_png:'res/arrow.png',
@@ -31,6 +35,7 @@ var res = {
     X_1_png:'res/x1.png',
     Y_1_png:'res/y1.png',
     Z_1_png:'res/z1.png',
+    Sound_png:'res/sound.png',
     Host_str:'http://150.95.150.175'
 };
 

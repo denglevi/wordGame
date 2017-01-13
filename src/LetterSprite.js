@@ -19,7 +19,10 @@ var LetterSprite = cc.Sprite.extend({
                 if (cc.rectContainsPoint(target.getBoundingBox(), pos)) {
 
                     var letterObj = obj.getChildByTag(100 + letterList.indexOf(letterSprite.letter));
-                    if (letterObj == null) return;
+                    if (letterObj == null){
+                        cc.audioEngine.playEffect(res.Fail_wav);
+                        return;
+                    }
                     var letterPos = letterObj.getPosition();
                     letterObj.removeFromParent(true);
                     var moveOutSprite = new cc.Sprite(res.Beams_png, cc.rect(160, 209, 40, 90));
@@ -32,6 +35,7 @@ var LetterSprite = cc.Sprite.extend({
                     var func = cc.callFunc(function (data) {
                         data.removeFromParent(true);
                     }, moveOutSprite, null);
+                    cc.audioEngine.playEffect(res.Success_wav);
                     var seq = cc.sequence(move, func);
                     moveOutSprite.runAction(seq);
                     moveOutSprite.runAction(scale);
@@ -47,11 +51,15 @@ var LetterSprite = cc.Sprite.extend({
     showFlare: function (str) {
         var mainLayer = this.mainLayer;
         this.mainLayer.keyword += str;
-        cc.log(this.mainLayer.keyword);
+        // cc.log(this.mainLayer.keyword);
         if (this.mainLayer.keyword.toLowerCase() == this.mainLayer.wordObj.word.toLowerCase()) {
             this.mainLayer.wordLabel.removeFromParent(true);
             this.mainLayer.wordZHLabel.removeFromParent(true);
             this.mainLayer.wordSymbolLabel.removeFromParent(true);
+            this.mainLayer.soundSprite.removeFromParent(true);
+            this.mainLayer.sentenceSoundSprite.removeFromParent(true);
+            this.mainLayer.sentenceLable.removeFromParent(true);
+            this.mainLayer.sentenceZHLable.removeFromParent(true);
             this.mainLayer.score = parseInt(this.mainLayer.score) + 10;
             this.mainLayer.score = (Array(6).join(0) + this.mainLayer.score).slice(-6);
             setTimeout(function () {
@@ -63,7 +71,7 @@ var LetterSprite = cc.Sprite.extend({
                 y: this.mainLayer.wordLabel.y,
                 scale: (0.6, 0.6)
             });
-
+            cc.audioEngine.playEffect(res.Success_word_wav);
             var controlPoints = [cc.p(this.mainLayer.wordLabel.x - 200, this.mainLayer.wordLabel.y), cc.p(this.mainLayer.wordLabel.x - 100, this.mainLayer.wordLabel.y + 50), cc.p(this.mainLayer.wordLabel.x + 150, this.mainLayer.wordLabel.y + 150)];
             var func = cc.callFunc(function (obj) {
                 obj.removeFromParent(true);
@@ -102,4 +110,4 @@ var LetterSprite = cc.Sprite.extend({
             }
         }
     }
-})
+});
